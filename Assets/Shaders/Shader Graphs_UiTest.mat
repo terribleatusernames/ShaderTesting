@@ -28,7 +28,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_5c315590225c4e6fa43d4375c532f52e_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: f88677df267a41d6be1e7a6133e7d227, type: 3}
+        m_Texture: {fileID: 2800000, guid: 283f897e4925411ebbaa758b4cb13fc2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _UVDistortion_34ad9016ed3f48c6b3d7f12667fecab6_NoiseMap_647888222_Texture2D:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _pajfauh:
@@ -51,8 +55,10 @@ Material:
     m_Floats:
     - _ColorMask: 15
     - _Fade: 1
-    - _PixelResolution: 15
-    - _Scale: 1
+    - _FadeOut: 0.175
+    - _PixelResolution: 16.03
+    - _Scale: 0.5
+    - _ShaderToUse: 1
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
