@@ -42,7 +42,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _BackgroundFade: 100
-    - _Brightness: 11.2
+    - _Brightness: 128
     - _ColorMask: 15
     - _Fade: 1
     - _QueueControl: -1
