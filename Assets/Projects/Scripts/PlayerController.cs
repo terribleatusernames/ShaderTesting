@@ -65,13 +65,13 @@ public class PlayerController : MonoBehaviour
 
         if (keyboard.rightArrowKey.isPressed)
         {
-            playerInput.x += -1;
+            playerInput.x += 1;
             facingDirection = FacingDirection.left;
         }
 
         if (keyboard.leftArrowKey.isPressed)
         {
-            playerInput.x += 1;
+            playerInput.x += -1;
             facingDirection = FacingDirection.right;
         }
 
@@ -122,8 +122,8 @@ public class PlayerController : MonoBehaviour
         isGrounded = Physics2D.OverlapBox(
             transform.position + (Vector3)groundCheckOffset,
             groundCheckSize,
-            0,
-            groundCheckMask);
+            0 
+            );
     }
 
     public bool IsWalking()
