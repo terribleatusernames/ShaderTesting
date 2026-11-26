@@ -1,51 +1,53 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    // Debug.DrawRay(transform.position, Vector3.down * 1f, Color.red);
+    private Rigidbody2D rb;
+    public float groundCheckTimer;
+    public float coyoteTimeCounter;
+    public float moveSpeed = 10f;
+    Collider2D player;
+    ContactFilter2D filter = new ContactFilter2D();
+
+    private float gravity;
+    private float jumpVelocity;
+    private float terminalVelocity = 0;
+    public float apexHeight = 3f;
+    public float apexTime = 0.5f;
+
+    private float acceleration;
+    private float deceleration;
+
+    public float maxSpeed = 5f;
+    public float accelerationTime = 0.25f;
+    public float decelerationTime = 0.15f;
+    bool isJumping = false;
+    private Vector2 velocity;
+
+    public float coyoteTime = 5f;
+    public bool isGrounded = false;
 
     public enum FacingDirection
     {
         left, right
     }
 
-    [Header("References")]
-    public Rigidbody2D body2D;
-
-    [Header("Horizontal")]
-    public float maxSpeed = 5f;
-    public float accelerationTime = 0.25f;
-    public float decelerationTime = 0.15f;
-
-    [Header("Vertical")]
-    public float apexHeight = 3f;
-    public float apexTime = 0.5f;
-
-    [Header("Ground Checking")]
-    public Vector2 groundCheckOffset = new(0f, -0.65f);
-    public Vector2 groundCheckSize = new(0.5f, 0.1f);
-    public LayerMask groundCheckMask;
-
-    private float acceleration;
-    private float deceleration;
-
-    private float gravity;
-    private float jumpVelocity;
-    private float terminalVelocity;
-
-    private Vector2 velocity;
-
-    private bool isGrounded = false;
-    private bool isJumping = false;
-
-    private FacingDirection facingDirection = FacingDirection.right;
-
-    private Keyboard keyboard;
-
     void Start()
     {
-        body2D.gravityScale = 0;
+
+        player = GetComponent<Collider2D>();
+
+        rb = GetComponent<Rigidbody2D>();
+
+        filter.SetLayerMask(LayerMask.GetMask("Ground"));
+
+        filter.useNormalAngle = true;
+        filter.minNormalAngle = 45;
+        filter.maxNormalAngle = 135;
+
+        rb.gravityScale = 0;
 
         acceleration = maxSpeed / accelerationTime;
         deceleration = maxSpeed / decelerationTime;
@@ -53,36 +55,42 @@ public class PlayerController : MonoBehaviour
         gravity = -2 * apexHeight / Mathf.Pow(apexTime, 2);
         jumpVelocity = 2 * apexHeight / apexTime;
         terminalVelocity = gravity;
-
-        keyboard = Keyboard.current;
     }
 
     void Update()
     {
-        CheckForGround();
 
-        Vector2 playerInput = new();
-
-        if (keyboard.rightArrowKey.isPressed)
+        if (IsGrounded())
         {
-            playerInput.x += 1;
-            facingDirection = FacingDirection.left;
+            if (groundCheckTimer > 0.1f)
+            {
+                coyoteTimeCounter = coyoteTime;
+            }
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
         }
 
-        if (keyboard.leftArrowKey.isPressed)
+        Vector2 playerInput = new Vector2();
+
+        if (Keyboard.current.leftArrowKey.isPressed)
         {
-            playerInput.x += -1;
-            facingDirection = FacingDirection.right;
+            playerInput.x = -1;
+        }
+        else if (Keyboard.current.rightArrowKey.isPressed)
+        {
+            playerInput.x = 1;
         }
 
-        if (keyboard.upArrowKey.wasPressedThisFrame && isGrounded)
+        if (Keyboard.current.upArrowKey.wasPressedThisFrame && coyoteTimeCounter > 0)
         {
             isJumping = true;
+
         }
 
         MovementUpdate(playerInput);
     }
-
     private void MovementUpdate(Vector2 playerInput)
     {
         if (playerInput.x != 0)
@@ -95,54 +103,54 @@ public class PlayerController : MonoBehaviour
             velocity.x = Mathf.MoveTowards(velocity.x, 0, deceleration * Time.deltaTime);
         }
     }
-
     private void FixedUpdate()
     {
-        if (!isGrounded)
+        if (!IsGrounded())
         {
             velocity.y += gravity * Time.fixedDeltaTime;
             velocity.y = Mathf.Clamp(velocity.y, terminalVelocity, velocity.y);
         }
         else
         {
-            velocity.y = 0;
+            if (groundCheckTimer > 0.1f)
+            {
+                velocity.y = 0;
+            }
         }
 
         if (isJumping)
         {
             velocity.y = jumpVelocity;
+            coyoteTimeCounter = 0f;
             isJumping = false;
         }
+        print(velocity);
 
-        body2D.linearVelocity = velocity;
+        rb.linearVelocity = velocity;
+
+        if (IsGrounded())
+        {
+            groundCheckTimer = 0;
+        }
+        else
+        {
+            groundCheckTimer += Time.fixedDeltaTime;
+        }
     }
 
-    private void CheckForGround()
-    {
-        isGrounded = Physics2D.OverlapBox(
-            transform.position + (Vector3)groundCheckOffset,
-            groundCheckSize,
-            0 
-            );
-    }
+
 
     public bool IsWalking()
     {
-        return velocity.x != 0;
+        return rb.linearVelocity.x > 0.1f || rb.linearVelocity.x < -0.1f;
     }
-
     public bool IsGrounded()
     {
-        return isGrounded;
+        return player.IsTouching(filter);
     }
 
     public FacingDirection GetFacingDirection()
     {
-        return facingDirection;
-    }
-
-    public void OnDrawGizmos()
-    {
-        Gizmos.DrawWireCube(transform.position + (Vector3)groundCheckOffset, groundCheckSize);
+        return (rb.linearVelocity.x > 0.1f) ? FacingDirection.right : (rb.linearVelocity.x < -0.1f) ? FacingDirection.left : FacingDirection.left;
     }
 }
